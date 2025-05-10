@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<robot name="dual_setup" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- include dual_arm macro and the UR ros2_control helper -->
+  <xacro:include filename="$(find my_robot_cell_description)/urdf/dual_setup_macro.xacro"/>
+  <xacro:include filename="$(find ur_description)/urdf/ur.ros2_control.xacro"/>
+
+  <!--=== common parameter files for UR10 ===-->
+  <xacro:arg name="joint_limit_params"  default="$(find ur_description)/config/ur10/joint_limits.yaml"/>
+  <xacro:arg name="kinematics_params"   default="$(find ur_description)/config/ur10/default_kinematics.yaml"/>
+  <xacro:arg name="physical_params"     default="$(find ur_description)/config/ur10/physical_parameters.yaml"/>
+  <xacro:arg name="visual_params"       default="$(find ur_description)/config/ur10/visual_parameters.yaml"/>
+
+  <!--=== ros2_control settings (shared) ===-->
+  <xacro:arg name="ur_script_filename"          default="$(find ur_client_library)/resources/external_control.urscript"/>
+  <xacro:arg name="ur_output_recipe_filename"   default="$(find ur_robot_driver)/resources/rtde_output_recipe.txt"/>
+  <xacro:arg name="ur_input_recipe_filename"    default="$(find ur_robot_driver)/resources/rtde_input_recipe.txt"/>
+  <xacro:arg name="use_fake_hardware"           default="false"/>
+  <xacro:arg name="fake_sensor_commands"        default="false"/>
+  <xacro:arg name="headless_mode"               default="false"/>
+
+  <!--=== per-arm parameters ===-->
+  <xacro:arg name="robot_ip1" default="0.0.0.0"/>
+  <xacro:arg name="robot_ip2" default="0.0.0.0"/>
+  <xacro:arg name="reverse_port1" default="50001" />
+  <xacro:arg name="reverse_port2" default="50011" />
+  <xacro:arg name="script_sender_port1" default="50002" />
+  <xacro:arg name="script_sender_port2" default="50012" />
+  <xacro:arg name="script_command_port1" default="50004" />
+  <xacro:arg name="script_command_port2" default="50014" />
+  <xacro:arg name="trajectory_port1" default="50003" />
+  <xacro:arg name="trajectory_port2" default="50013" />
+
+  <!-- load the kinematics hash once -->
+  <xacro:property name="kinematics_params_file" value="$(arg kinematics_params)"/>
+  <xacro:property name="kinematics_hash" value="${xacro.load_yaml(kinematics_params_file)['kinematics']['hash']}"/>
+
+  <!-- world frame -->
+  <link name="world"/>
+
+  <!-- spawn both arms on a common base_link, 1 m above world -->
+  <xacro:dual_arm
+    parent="world"
+    ur_type="ur10"
+    joint_limits_parameters_file="$(arg joint_limit_params)"
+    kinematics_parameters_file="$(arg kinematics_params)"
+    physical_parameters_file="$(arg physical_params)"
+    visual_parameters_file="$(arg visual_params)"
+  >
+    <!-- you can tweak these if you need a different base pose -->
+    <origin xyz="0 0 1" rpy="0 0 0"/>
+  </xacro:dual_arm>
+
+  <!-- ros2_control for arm1 -->
+  <xacro:ur_ros2_control
+    name="arm1"
+    tf_prefix="arm1_"
+    hash_kinematics="${kinematics_hash}"
+    robot_ip="$(arg robot_ip1)"
+    script_filename="$(arg ur_script_filename)"
+    output_recipe_filename="$(arg ur_output_recipe_filename)"
+    input_recipe_filename="$(arg ur_input_recipe_filename)"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    fake_sensor_commands="$(arg fake_sensor_commands)"
+    headless_mode="$(arg headless_mode)"
+    reverse_port="$(arg reverse_port1)"
+    script_sender_port="$(arg script_sender_port1)"
+    script_command_port="$(arg script_command_port1)"
+    trajectory_port="$(arg trajectory_port1)"
+  />
+
+  <!-- ros2_control for arm2 -->
+  <xacro:ur_ros2_control
+    name="arm2"
+    tf_prefix="arm2_"
+    hash_kinematics="${kinematics_hash}"
+    robot_ip="$(arg robot_ip2)"
+    script_filename="$(arg ur_script_filename)"
+    output_recipe_filename="$(arg ur_output_recipe_filename)"
+    input_recipe_filename="$(arg ur_input_recipe_filename)"
+    use_fake_hardware="$(arg use_fake_hardware)"
+    fake_sensor_commands="$(arg fake_sensor_commands)"
+    headless_mode="$(arg headless_mode)"
+    reverse_port="$(arg reverse_port2)"
+    script_sender_port="$(arg script_sender_port2)"
+    script_command_port="$(arg script_command_port2)"
+    trajectory_port="$(arg trajectory_port2)"
+  />
+
+</robot>

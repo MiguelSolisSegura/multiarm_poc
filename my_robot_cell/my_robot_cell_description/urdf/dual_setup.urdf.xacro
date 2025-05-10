@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot name="dual_setup" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Include the dual-arm macro -->
+  <xacro:include filename="$(find my_robot_cell_description)/urdf/dual_setup_macro.xacro"/>
+
+  <!-- Hardcode UR10 parameter file locations -->
+  <xacro:arg name="joint_limits_parameters_file" 
+    default="$(find ur_description)/config/ur10/joint_limits.yaml"/>
+  <xacro:arg name="kinematics_parameters_file" 
+    default="$(find ur_description)/config/ur10/default_kinematics.yaml"/>
+  <xacro:arg name="physical_parameters_file" 
+    default="$(find ur_description)/config/ur10/physical_parameters.yaml"/>
+  <xacro:arg name="visual_parameters_file" 
+    default="$(find ur_description)/config/ur10/visual_parameters.yaml"/>
+
+  <!-- Define world frame -->
+  <link name="world"/>
+
+  <!-- Spawn two UR10 arms at base_link attached to world -->
+  <xacro:dual_arm
+    parent="world"
+    ur_type="ur10"
+    joint_limits_parameters_file="$(arg joint_limits_parameters_file)"
+    kinematics_parameters_file="$(arg kinematics_parameters_file)"
+    physical_parameters_file="$(arg physical_parameters_file)"
+    visual_parameters_file="$(arg visual_parameters_file)"
+  >
+    <!-- Position the base_link 1m above world -->
+    <origin xyz="0 0 1" rpy="0 0 0"/>
+  </xacro:dual_arm>
+
+</robot>
